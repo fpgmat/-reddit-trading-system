@@ -1,0 +1,19 @@
+{
+  "name": "reddit-trading-analytics",
+  "version": "1.0.0",
+  "description": "Sistema de análise do Reddit para trading - coleta, análise e insights",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": ["reddit", "trading", "analytics", "scraping"],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "node-fetch": "^3.3.2"
+  }
+}

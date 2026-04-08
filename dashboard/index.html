@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reddit Trading Analytics</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <span class="logo">◈</span>
+      <h1>Reddit Trading Analytics</h1>
+    </div>
+    <div class="header-stats" id="headerStats">
+      <span class="stat-item">Posts: <strong>--</strong></span>
+      <span class="stat-item">Subreddits: <strong>--</strong></span>
+    </div>
+    <button class="btn-primary" onclick="novaRaspagem()">
+      <span class="btn-icon">◈</span>
+      Nova Raspagem
+    </button>
+  </header>
+
+  <main class="main">
+    <!-- Status -->
+    <section class="status-bar" id="statusBar">
+      <span class="status-indicator"></span>
+      <span class="status-text">Pronto</span>
+    </section>
+
+    <!-- Grid -->
+    <div class="grid">
+      <!-- Dores -->
+      <section class="card card-dores">
+        <div class="card-header">
+          <h2>🔥 Dores</h2>
+          <span class="badge" id="doresCount">--</span>
+        </div>
+        <div class="card-body" id="doresList">
+          <div class="empty-state">
+            <span class="empty-icon">○</span>
+            <p>Clique em "Nova Raspagem" para iniciar</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Perguntas -->
+      <section class="card card-perguntas">
+        <div class="card-header">
+          <h2>❓ Perguntas</h2>
+          <span class="badge" id="perguntasCount">--</span>
+        </div>
+        <div class="card-body" id="perguntasList">
+          <div class="empty-state">
+            <span class="empty-icon">○</span>
+            <p>Clique em "Nova Raspagem" para iniciar</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tendências -->
+      <section class="card card-tendencias">
+        <div class="card-header">
+          <h2>📈 Tendências</h2>
+          <span class="badge" id="tendenciasCount">--</span>
+        </div>
+        <div class="card-body" id="tendenciasList">
+          <div class="empty-state">
+            <span class="empty-icon">○</span>
+            <p>Clique em "Nova Raspagem" para iniciar</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Oportunidades -->
+      <section class="card card-oportunidades">
+        <div class="card-header">
+          <h2>💡 Oportunidades</h2>
+          <span class="badge" id="oportunidadesCount">--</span>
+        </div>
+        <div class="card-body" id="oportunidadesList">
+          <div class="empty-state">
+            <span class="empty-icon">○</span>
+            <p>Clique em "Nova Raspagem" para iniciar</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Keywords -->
+    <section class="keywords-section">
+      <h3>🔑 Keywords Mais Frequentes</h3>
+      <div class="keywords-grid" id="keywordsGrid">
+        <!-- Preenchido via JS -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Loading -->
+  <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p>Raspando Reddit...</p>
+      <p class="loading-sub">Isso pode levar alguns minutos</p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Dados coletados via Apify • Reddit Scraper</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
