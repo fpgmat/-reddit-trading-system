@@ -1,6 +1,6 @@
 /**
  * Integrador Apify Turbinado:
- * Usa o Ator trudax/reddit-scraper-lite que funciona após os cortes.
+ * Mapeamento perfeito das pontuações (upVotes) - Anti-Falhas.
  */
 import fetch from 'node-fetch';
 
@@ -11,14 +11,14 @@ const SUBREDDITS = {
 };
 
 const SCRAPE_CONFIG = {
-  maxItems: 30, // 30 por fórum, máximo seguro pra Render não estourar o limite de 2 minutos gratuitos.
+  maxItems: 15, // Mais rápido! Serão cerca de ~120 posts focados em pura qualidade sem travar seu Render
   minUpvotes: 5,
   minComments: 3
 };
 
 export async function scrapeReddit() {
   const token = process.env.APIFY_API_TOKEN;
-  if (!token) throw new Error('APIFY_API_TOKEN não está configurado nas Variables da Render');
+  if (!token) throw new Error('APIFY_API_TOKEN não está configurado');
 
   const startUrls = [];
   for (const category of Object.keys(SUBREDDITS)) {
@@ -27,15 +27,16 @@ export async function scrapeReddit() {
     }
   }
 
-  // Envia tudo empacotado de uma única vez para não perder tempo com For-Loops
+  // Envia tudo empacotado de uma única vez para não perder tempo
   const actorUrl = 'https://api.apify.com/v2/acts/trudax~reddit-scraper-lite/run-sync-get-dataset-items';
   
   const response = await fetch(`${actorUrl}?token=${token}&format=json`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    // maxItems global para não causar Timeout
     body: JSON.stringify({
       startUrls: startUrls,
-      maxItems: SCRAPE_CONFIG.maxItems * startUrls.length // Limite global que pedimos pra apify
+      maxItems: SCRAPE_CONFIG.maxItems * startUrls.length 
     })
   });
 
@@ -48,14 +49,14 @@ export async function scrapeReddit() {
   const allPosts = [];
 
   for (const item of rawData) {
-    // Tratamentos pra barrar retornos lixos e formatar propriedades de acordo pro Analyzer
+    // 🛡️ Filtra respostas lixo (retira "comments" que o robô empurra no meio e URLs inválidas)
     if (!item.url || !item.url.includes('/r/')) continue;
+    if (item.dataType && item.dataType !== 'post') continue; 
     
-    // Descobre com Regex de qual sub ele veio da URL gerada
+    // Descobre facilmente a categoria de qual Fórum (Sub) ele veio
     const regexMatch = item.url.match(/reddit\.com\/r\/([^/]+)/);
     let subName = regexMatch ? regexMatch[1] : 'unknown';
     
-    // Avalia o sub achado para colocar a categoria certinha
     let assignedCategory = 'geral';
     for (const [cat, lista] of Object.entries(SUBREDDITS)) {
       if (lista.find(nm => nm.toLowerCase() === subName.toLowerCase())) {
@@ -64,16 +65,18 @@ export async function scrapeReddit() {
       }
     }
 
+    // ⭐ Aqui Consertamos o erro do Painel Vazio (Mapeando do Dicionário exato de retorno V.Maiusculo) 
     const formatado = {
       title: item.title || '',
-      content: item.text || item.content || '',
-      upvotes: item.upvotes || item.score || 0,
-      num_comments: item.comments || item.numComments || 0,
+      content: item.text || item.content || item.html || '',
+      upvotes: item.upVotes || item.upvotes || item.score || 0, 
+      num_comments: item.numberOfreplies || item.comments || item.numComments || 0,
       url: item.url,
       subreddit: `r/${subName}`,
       category: assignedCategory
     };
 
+    // Última validação de engajamento do seu Projeto original
     if (formatado.upvotes >= SCRAPE_CONFIG.minUpvotes && formatado.num_comments >= SCRAPE_CONFIG.minComments) {
       allPosts.push(formatado);
     }
