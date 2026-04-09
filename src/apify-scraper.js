@@ -1,6 +1,6 @@
 /**
- * Integrador Apify Turbinado:
- * Mapeamento perfeito das pontuações (upVotes) - Anti-Falhas.
+ * Integrador Apify Final:
+ * Mapeamento de Títulos como filtro (blindado contra lixos de dataType)
  */
 import fetch from 'node-fetch';
 
@@ -11,7 +11,7 @@ const SUBREDDITS = {
 };
 
 const SCRAPE_CONFIG = {
-  maxItems: 15, // Mais rápido! Serão cerca de ~120 posts focados em pura qualidade sem travar seu Render
+  maxItems: 15, // O suficiente para extrair uma porrada de dados bons rápido
   minUpvotes: 5,
   minComments: 3
 };
@@ -27,13 +27,12 @@ export async function scrapeReddit() {
     }
   }
 
-  // Envia tudo empacotado de uma única vez para não perder tempo
+  // Acionando todos os robos da Apify em paralelo de uma vez
   const actorUrl = 'https://api.apify.com/v2/acts/trudax~reddit-scraper-lite/run-sync-get-dataset-items';
   
   const response = await fetch(`${actorUrl}?token=${token}&format=json`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    // maxItems global para não causar Timeout
     body: JSON.stringify({
       startUrls: startUrls,
       maxItems: SCRAPE_CONFIG.maxItems * startUrls.length 
@@ -49,14 +48,16 @@ export async function scrapeReddit() {
   const allPosts = [];
 
   for (const item of rawData) {
-    // 🛡️ Filtra respostas lixo (retira "comments" que o robô empurra no meio e URLs inválidas)
+    // 🔥 A Mágica de verdade que estava faltando 🔥
+    // Se não tiver Título ou for url furada, ele destarta na hora. Isso isola todos os comentários!
+    if (!item.title || item.title.trim() === '') continue;
     if (!item.url || !item.url.includes('/r/')) continue;
-    if (item.dataType && item.dataType !== 'post') continue; 
     
-    // Descobre facilmente a categoria de qual Fórum (Sub) ele veio
+    // Pega o nome do subreddit de onde veio do link
     const regexMatch = item.url.match(/reddit\.com\/r\/([^/]+)/);
     let subName = regexMatch ? regexMatch[1] : 'unknown';
     
+    // Busca a categoria baseado na lista que foi configurada lá em cima
     let assignedCategory = 'geral';
     for (const [cat, lista] of Object.entries(SUBREDDITS)) {
       if (lista.find(nm => nm.toLowerCase() === subName.toLowerCase())) {
@@ -65,9 +66,8 @@ export async function scrapeReddit() {
       }
     }
 
-    // ⭐ Aqui Consertamos o erro do Painel Vazio (Mapeando do Dicionário exato de retorno V.Maiusculo) 
     const formatado = {
-      title: item.title || '',
+      title: item.title,
       content: item.text || item.content || item.html || '',
       upvotes: item.upVotes || item.upvotes || item.score || 0, 
       num_comments: item.numberOfreplies || item.comments || item.numComments || 0,
@@ -76,7 +76,7 @@ export async function scrapeReddit() {
       category: assignedCategory
     };
 
-    // Última validação de engajamento do seu Projeto original
+    // Aprovando apenas se tiverem métricas quentes de interação e votos (Mínimo de 5 Upvotes e 3 Comentários)
     if (formatado.upvotes >= SCRAPE_CONFIG.minUpvotes && formatado.num_comments >= SCRAPE_CONFIG.minComments) {
       allPosts.push(formatado);
     }
