@@ -5,8 +5,14 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { scrapeReddit } from './apify-scraper.js';
 import { analyzePosts } from './analyzer.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const dashboardDir = path.join(__dirname, '..', 'dashboard');
 
 dotenv.config();
 
@@ -15,7 +21,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('../dashboard'));
+app.use(express.static(dashboardDir));
 
 /**
  * Endpoint: Status
@@ -115,7 +121,7 @@ app.get('/api/history', async (req, res) => {
  * Dashboard
  */
 app.get('/', (req, res) => {
-  res.sendFile('index.html', { root: '../dashboard' });
+  res.sendFile('index.html', { root: dashboardDir });
 });
 
 app.listen(PORT, () => {
